@@ -3,19 +3,39 @@ package rangelock_test
 import (
 	"RangeLock/rangelock"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func TestBasic(t *testing.T) {
+func TestLockBasic(t *testing.T) {
 	lock := rangelock.New()
-	if err := lock.Lock(3, 35); err != nil {
-		t.Fatal("Should be able to lock", err)
-	}
+	assert.NoError(t, lock.Lock(3, 35))
+	assert.NoError(t, lock.Lock(1, 2))
+	assert.NoError(t, lock.Lock(44, 77))
+	assert.Error(t, lock.Lock(44, 77))
+	assert.Error(t, lock.Lock(45, 78))
+	assert.Error(t, lock.Lock(22, 99))
+}
 
-	if err := lock.Lock(4, 5); err == nil {
-		t.Fatal("Should not lock")
-	}
+func TestUnlock(t *testing.T) {
+	t.Run("Basic", func(t *testing.T) {
+		lock := rangelock.New()
+		assert.NoError(t, lock.Lock(3, 35))
+		assert.NoError(t, lock.Lock(1, 2))
+		assert.NoError(t, lock.Lock(44, 77))
+		assert.NoError(t, lock.Unlock(3, 35))
+		assert.NoError(t, lock.Unlock(1, 2))
+		assert.NoError(t, lock.Unlock(44, 77))
+	})
 
-	if err := lock.Unlock(3, 35); err != nil {
-		t.Fatal("Should unlock")
-	}
+	t.Run("Shouldn't unlock", func(t *testing.T) {
+		lock := rangelock.New()
+		assert.NoError(t, lock.Lock(3, 35))
+		assert.NoError(t, lock.Lock(1, 2))
+		assert.NoError(t, lock.Lock(44, 77))
+		assert.Error(t, lock.Unlock(2, 44))
+		assert.Error(t, lock.Unlock(1, 1))
+		assert.Error(t, lock.Unlock(33, 77))
+		assert.Error(t, lock.Unlock(79, 800))
+	})
 }
