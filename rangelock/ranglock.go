@@ -9,13 +9,14 @@ import (
 // RangeLock ....
 type RangeLock struct {
 	mutex *sync.Mutex
-	bst   *bst.Node
+	bst   *bst.BST
 }
 
 // New ...
 func New() *RangeLock {
 	return &RangeLock{
 		mutex: &sync.Mutex{},
+		bst:   bst.New(),
 	}
 }
 
