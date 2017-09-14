@@ -1,3 +1,4 @@
+// Package bst contains a binary search tree whose value is a range with a begin and an end.
 package bst
 
 import "errors"

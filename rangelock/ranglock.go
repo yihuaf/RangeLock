@@ -1,3 +1,5 @@
+// Package rangelock contains the a lock to lock a range of bytes. This implementation
+// is only exclusive and only allowed unlocking exact ranges that were locked.
 package rangelock
 
 import (
