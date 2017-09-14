@@ -26,12 +26,10 @@ func (rl *RangeLock) Lock(begin, end int) error {
 	defer rl.mutex.Unlock()
 
 	// Search for the range in bst.
-	if rl.bst.IsBetween(begin) || rl.bst.IsBetween(end) {
-		return errors.New("Locked")
+	if err := rl.bst.Insert(begin, end); err != nil {
+		return errors.New("Locked already")
 	}
 
-	rl.bst.Insert(begin)
-	rl.bst.Insert(end)
 	return nil
 }
 
@@ -39,13 +37,15 @@ func (rl *RangeLock) Lock(begin, end int) error {
 func (rl *RangeLock) Unlock(begin, end int) error {
 	rl.mutex.Lock()
 	defer rl.mutex.Unlock()
-	_, foundBegin := rl.bst.Find(begin)
-	_, foundEnd := rl.bst.Find(end)
-	if foundBegin != nil && foundEnd != nil {
-		rl.bst.Remove(begin)
-		rl.bst.Remove(end)
-		return nil
+	node, err := rl.bst.Find(begin, end)
+	if err != nil {
+		return errors.New("Can only unlock exact locked range")
 	}
 
-	return errors.New("Didn't lock the exact range")
+	if node.Begin != begin || node.End != end {
+		return errors.New("Can only unlock exact locked range")
+	}
+
+	rl.bst.Remove(begin, end)
+	return nil
 }
